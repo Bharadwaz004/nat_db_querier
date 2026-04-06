@@ -117,10 +117,15 @@ export default function App() {
     await loadSchema();
   };
 
-  // Clear chat and return to welcome screen
+  // Clear everything and re-show the connection modal
   const handleHome = () => {
     setMessages([]);
+    setSchema(null);
+    setConnected(false);
+    setShowModal(true);
     localStorage.removeItem(LS_MESSAGES);
+    localStorage.removeItem(LS_SCHEMA);
+    localStorage.removeItem(LS_CONNECTED);
   };
 
   const handleSend = async (queryText) => {
