@@ -20,6 +20,7 @@ uvicorn backend_fastapi.src.main:app --host 0.0.0.0 --port 8000 >> /tmp/fastapi.
 echo "Starting Node gateway on port 3001..."
 FASTAPI_URL=http://localhost:8000 \
 JWT_SECRET="${JWT_SECRET:-nlsql-dev-secret}" \
+SAMPLE_DB_PATH="$WORKDIR/data/sample_ecommerce.db" \
 node backend-node/src/server.js >> /tmp/gateway.log 2>&1 &
 
 echo "Starting Vite frontend on port 5173..."
