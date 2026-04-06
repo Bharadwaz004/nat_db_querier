@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  # ── FastAPI AI Engine ──────────────────────────────────────
+  fastapi:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.fastapi
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data
+      - ./embeddings:/app/embeddings
+      - ./graph:/app/graph
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-anthropic}
+      - DB_PATH=/app/data/sample_ecommerce.db
+      - EMBEDDINGS_DIR=/app/embeddings
+      - GRAPH_DIR=/app/graph
+    restart: unless-stopped
+
+  # ── Node.js API Gateway ────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    ports:
+      - "${NODE_PORT:-3001}:3001"
+    environment:
+      - FASTAPI_URL=http://fastapi:8000
+      - JWT_SECRET=${JWT_SECRET:-nlsql-super-secret-key-change-in-production}
+      - PORT=3001
+    depends_on:
+      - fastapi
+    restart: unless-stopped
+
+  # ── React Frontend ─────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    depends_on:
+      - gateway
+    restart: unless-stopped
