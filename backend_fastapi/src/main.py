@@ -147,6 +147,21 @@ async def upload_database(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/use-sample")
+async def use_sample_db():
+    """Reset to the original sample database."""
+    try:
+        orchestrator.reingest(db_path=settings.SAMPLE_DB_PATH)
+        return {
+            "status": "success",
+            "db_path": settings.SAMPLE_DB_PATH,
+            "tables": list(orchestrator.ingestion.schema_info.keys()),
+            "message": "Reset to sample database."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/connect-db")
 async def connect_database(request: IngestRequest):
     """Connect to an existing SQLite database by path."""

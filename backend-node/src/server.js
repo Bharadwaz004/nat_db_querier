@@ -26,7 +26,6 @@ const PORT = process.env.PORT || 3001;
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
 const JWT_SECRET = process.env.JWT_SECRET || 'nlsql-super-secret-key-change-in-production';
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
-const SAMPLE_DB_PATH = process.env.SAMPLE_DB_PATH || '/app/data/sample_ecommerce.db';
 
 // ─── In-memory user store (replace with DB in production) ───────
 const users = new Map();
@@ -256,11 +255,7 @@ app.post('/api/upload-db', authenticateToken, upload.single('file'), async (req,
 
 app.post('/api/use-sample', authenticateToken, async (_req, res) => {
   try {
-    const response = await fetch(`${FASTAPI_URL}/connect-db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ db_path: SAMPLE_DB_PATH })
-    });
+    const response = await fetch(`${FASTAPI_URL}/use-sample`, { method: 'POST' });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (err) {

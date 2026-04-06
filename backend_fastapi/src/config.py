@@ -13,6 +13,7 @@ class Settings:
     EMBEDDINGS_DIR = os.getenv("EMBEDDINGS_DIR", str(BASE_DIR / "embeddings"))
     GRAPH_DIR = os.getenv("GRAPH_DIR", str(BASE_DIR / "graph"))
     DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "data" / "sample_ecommerce.db"))
+    SAMPLE_DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "data" / "sample_ecommerce.db"))  # never mutated
 
     # LLM Provider: "anthropic" or "huggingface"
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "anthropic")
