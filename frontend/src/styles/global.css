@@ -63,21 +63,46 @@ html, body, #root {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.sidebar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .sidebar-header h1 {
   font-size: 18px;
   font-weight: 700;
   background: linear-gradient(135deg, var(--accent), var(--purple));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .sidebar-header p {
   color: var(--text-muted);
   font-size: 12px;
   margin-top: 4px;
+}
+
+.home-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.home-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
 }
 
 .db-status {
@@ -176,12 +201,19 @@ html, body, #root {
   gap: 16px;
 }
 
-.welcome-screen h2 {
-  font-size: 28px;
-  font-weight: 700;
+.welcome-logo {
+  font-size: 40px;
+  font-weight: 800;
   background: linear-gradient(135deg, var(--accent), var(--purple));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+.welcome-screen h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .welcome-screen p {

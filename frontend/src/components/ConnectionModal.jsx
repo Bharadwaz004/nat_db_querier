@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ConnectionModal({ onConnect, onUpload, onUseSample }) {
   const [mode, setMode] = useState(null); // null | 'connect' | 'upload'
@@ -35,8 +35,8 @@ export default function ConnectionModal({ onConnect, onUpload, onUseSample }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>⚡ Connect Your Database</h2>
-        <p>Choose how you'd like to get started with the NL→SQL assistant.</p>
+        <h2>Connect Your Database</h2>
+        <p>Choose how you'd like to get started with AskMyDB.</p>
 
         {error && <div className="error-msg" style={{ marginBottom: 12 }}>{error}</div>}
 

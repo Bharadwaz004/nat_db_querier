@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import ConnectionModal from './components/ConnectionModal';
@@ -21,17 +21,38 @@ const EXAMPLE_QUERIES = [
   'Which products are running low on inventory?',
 ];
 
+const LS_MESSAGES = 'askmydb_messages';
+const LS_SCHEMA   = 'askmydb_schema';
+const LS_CONNECTED = 'askmydb_connected';
+
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [schema, setSchema] = useState(null);
-  const [connected, setConnected] = useState(false);
+  const [messages, setMessages]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_MESSAGES) || '[]'); } catch { return []; }
+  });
+  const [schema, setSchema]       = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_SCHEMA) || 'null'); } catch { return null; }
+  });
+  const [connected, setConnected] = useState(() => localStorage.getItem(LS_CONNECTED) === 'true');
+  const [input, setInput]         = useState('');
+  const [loading, setLoading]     = useState(false);
   const [sessionId, setSessionId] = useState(null);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(() => localStorage.getItem(LS_CONNECTED) !== 'true');
   const [initError, setInitError] = useState('');
-  const chatRef = useRef(null);
+  const chatRef  = useRef(null);
   const inputRef = useRef(null);
+
+  // Persist messages
+  useEffect(() => {
+    localStorage.setItem(LS_MESSAGES, JSON.stringify(messages));
+  }, [messages]);
+
+  // Persist schema + connected state
+  useEffect(() => {
+    if (schema) {
+      localStorage.setItem(LS_SCHEMA, JSON.stringify(schema));
+      localStorage.setItem(LS_CONNECTED, 'true');
+    }
+  }, [schema]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -40,23 +61,35 @@ export default function App() {
     }
   }, [messages, loading]);
 
-  // Initialize: get guest token
+  // Always get a fresh auth token + session on load (in-memory on server)
   const init = useCallback(async () => {
     try {
       const authData = await loginAsGuest();
       setToken(authData.token);
       const sess = await createSession();
       setSessionId(sess.sessionId);
+
+      // If we were previously connected, try to restore schema silently
+      if (localStorage.getItem(LS_CONNECTED) === 'true') {
+        try {
+          const data = await getSchema();
+          setSchema(data.tables);
+          setConnected(true);
+          setShowModal(false);
+        } catch {
+          // FastAPI may have restarted — show modal again
+          setConnected(false);
+          setShowModal(true);
+          localStorage.removeItem(LS_CONNECTED);
+        }
+      }
     } catch (e) {
       setInitError('Failed to connect to API gateway. Is the server running?');
     }
   }, []);
 
-  useEffect(() => {
-    init();
-  }, [init]);
+  useEffect(() => { init(); }, [init]);
 
-  // Load schema after connection
   const loadSchema = async () => {
     try {
       const data = await getSchema();
@@ -67,7 +100,6 @@ export default function App() {
     }
   };
 
-  // Handle DB connection options
   const handleUseSample = async () => {
     setShowModal(false);
     await loadSchema();
@@ -85,22 +117,23 @@ export default function App() {
     await loadSchema();
   };
 
-  // Send query
+  // Clear chat and return to welcome screen
+  const handleHome = () => {
+    setMessages([]);
+    localStorage.removeItem(LS_MESSAGES);
+  };
+
   const handleSend = async (queryText) => {
     const query = (queryText || input).trim();
     if (!query || loading) return;
 
-    // Add user message
     setMessages((prev) => [...prev, { role: 'user', content: query }]);
     setInput('');
     setLoading(true);
 
     try {
       const result = await sendQuery(query, sessionId);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', data: result },
-      ]);
+      setMessages((prev) => [...prev, { role: 'assistant', data: result }]);
     } catch (e) {
       setMessages((prev) => [
         ...prev,
@@ -129,7 +162,7 @@ export default function App() {
         />
       )}
 
-      <Sidebar schema={schema} connected={connected} />
+      <Sidebar schema={schema} connected={connected} onHome={handleHome} />
 
       <main className="main-area">
         <div className="chat-container" ref={chatRef}>
@@ -139,11 +172,11 @@ export default function App() {
 
           {messages.length === 0 && !loading && (
             <div className="welcome-screen">
+              <div className="welcome-logo">AskMyDB</div>
               <h2>Ask your database anything</h2>
               <p>
                 Type a natural language question and the AI will generate SQL,
-                execute it, and explain the results — all powered by hybrid
-                vector + graph RAG retrieval.
+                execute it, and explain the results.
               </p>
               <div className="example-queries">
                 {EXAMPLE_QUERIES.map((q) => (

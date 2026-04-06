@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-export default function Sidebar({ schema, connected }) {
+export default function Sidebar({ schema, connected, onHome }) {
   const [expanded, setExpanded] = useState({});
 
   const toggle = (table) => {
@@ -12,8 +12,11 @@ export default function Sidebar({ schema, connected }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h1>⚡ NL→SQL</h1>
-        <p>Hybrid RAG Query Assistant</p>
+        <div className="sidebar-title-row">
+          <h1>AskMyDB</h1>
+          <button className="home-btn" onClick={onHome} title="Back to home">⌂</button>
+        </div>
+        <p>Natural Language Database Query</p>
       </div>
 
       <div className="db-status">
