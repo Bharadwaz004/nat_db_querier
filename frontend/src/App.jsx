@@ -10,6 +10,7 @@ import {
   getSchema,
   connectDb,
   uploadDb,
+  useSampleDb,
 } from './hooks/api';
 
 const EXAMPLE_QUERIES = [
@@ -101,6 +102,7 @@ export default function App() {
   };
 
   const handleUseSample = async () => {
+    await useSampleDb();
     setShowModal(false);
     await loadSchema();
   };

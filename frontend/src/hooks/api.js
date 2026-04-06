@@ -76,5 +76,8 @@ export const uploadDb = async (file) => {
   return res.json();
 };
 
+// Sample DB
+export const useSampleDb = () => request('/use-sample', { method: 'POST' });
+
 // Health
 export const healthCheck = () => fetch(`${API_BASE}/health`).then((r) => r.json());
