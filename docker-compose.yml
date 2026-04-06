@@ -13,8 +13,12 @@ services:
       - ./embeddings:/app/embeddings
       - ./graph:/app/graph
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - LLM_PROVIDER=${LLM_PROVIDER:-anthropic}
+      - LLM_PROVIDER=${LLM_PROVIDER:-huggingface}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      - HF_API_KEY=${HF_API_KEY}
+      - HF_API_URL=${HF_API_URL:-https://router.huggingface.co/v1}
+      - HF_MODEL=${HF_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
       - DB_PATH=/app/data/sample_ecommerce.db
       - EMBEDDINGS_DIR=/app/embeddings
       - GRAPH_DIR=/app/graph
@@ -41,7 +45,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.frontend
     ports:
-      - "${VITE_PORT:-5173}:5173"
+      - "${VITE_PORT:-80}:80"
     depends_on:
       - gateway
     restart: unless-stopped
