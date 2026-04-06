@@ -3,6 +3,11 @@
 WORKDIR="/workspaces/$(basename $PWD)"
 cd "$WORKDIR"
 
+# Load .env if present (won't exist in Codespaces — use Codespaces secrets instead)
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
 # Kill any leftover processes
 pkill -f "uvicorn" 2>/dev/null || true
 pkill -f "server.js" 2>/dev/null || true
