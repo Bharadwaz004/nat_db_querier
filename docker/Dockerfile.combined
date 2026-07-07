@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# ── Node.js 20 runtime (alongside Python) ──────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Python deps (FastAPI engine) ────────────────────────────
+COPY backend_fastapi/requirements.txt ./backend_fastapi/requirements.txt
+RUN pip install --no-cache-dir -r backend_fastapi/requirements.txt
+
+# ── Node deps (gateway) ─────────────────────────────────────
+COPY backend-node/package*.json ./backend-node/
+RUN cd backend-node && npm ci --omit=dev
+
+# ── App code ─────────────────────────────────────────────────
+COPY backend_fastapi/ ./backend_fastapi/
+COPY backend-node/src/ ./backend-node/src/
+COPY data/ ./data_seed/
+RUN python data_seed/create_sample_db.py
+
+COPY docker/start-combined.sh ./start-combined.sh
+RUN chmod +x ./start-combined.sh
+
+ENV PYTHONPATH=/app
+EXPOSE 3001
+
+CMD ["./start-combined.sh"]

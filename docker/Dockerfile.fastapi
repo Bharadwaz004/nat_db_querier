@@ -14,5 +14,6 @@ RUN python data_seed/create_sample_db.py
 EXPOSE 8000
 ENV PYTHONPATH=/app
 
-# On first start: copy seed data to volume mount if empty, then launch
-CMD ["sh", "-c", "[ ! -f /app/data/sample_ecommerce.db ] && cp -r /app/data_seed/. /app/data/; uvicorn backend_fastapi.src.main:app --host 0.0.0.0 --port 8000"]
+# On first start: ensure volume dirs exist, seed sample DB if empty, then launch.
+# Binds to $PORT when set (Railway assigns this), falling back to 8000 locally.
+CMD ["sh", "-c", "mkdir -p /app/data /app/embeddings /app/graph; [ ! -f /app/data/sample_ecommerce.db ] && cp -r /app/data_seed/. /app/data/; uvicorn backend_fastapi.src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
