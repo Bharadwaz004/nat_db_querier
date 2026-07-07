@@ -8,5 +8,7 @@ build/
 .env
 *.db
 embeddings/*.pkl
+embeddings/schema_info.json
+graph/relationships.json
 venv/
 .venv/
