@@ -256,7 +256,7 @@ Target eval: **50 held-out questions** against `data/sample_ecommerce.db`, exclu
 
 | Metric | Baseline | Fine-tuned 8B | Δ |
 |---|---|---|---|
-| Execution accuracy (result set matches gold) | 95% | 91% | -1 pts |
+| Execution accuracy (result set matches gold) | 95% | 91% | -4 pts |
 | Valid SQL on first attempt | 90% | 95% | +5 pts |
 | Mean retries (`retries` field in `/query` response) | 0.31 | 0.09 | −71% |
 | Unrecoverable after `MAX_RETRIES` | 4% | 3% | −1 pt |
