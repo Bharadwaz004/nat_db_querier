@@ -237,6 +237,51 @@ Set `LLM_PROVIDER` in `.env`:
 
 ---
 
+## LoRA Fine-Tuned 8B vs. Frontier Baseline
+
+The default provider is a general-purpose frontier model. Against a **fixed, known schema**, a much smaller fine-tuned model closes most of the accuracy gap on this narrow task while cutting cost and latency substantially. The hypothesis is that most of the frontier model's advantage here is general reasoning the task doesn't need, and that format compliance and schema conventions — the things a small model learns well — account for most recoverable error.
+
+### Setup
+
+| | Baseline | Fine-tuned |
+|---|---|---|
+| Model | `Llama-3.3-70B-Instruct` | Llama-3.1-8B-Instruct + LoRA |
+| Adaptation | Zero-shot, schema in prompt | LoRA — rank 16, α 32, 3 epochs |
+| Training data | — | ~500 question→SQL pairs mined from pipeline runs that validated *and* executed cleanly |
+| Serving | Hosted API | Local |
+
+Target eval: **50 held-out questions** against `data/sample_ecommerce.db`, excluded from training. Only step 4 of the pipeline (SQL generation) is swapped — retrieval, graph traversal, context building, validation, and execution stay byte-identical, so the comparison isolates the generator.
+
+### Accuracy
+
+| Metric | Baseline | Fine-tuned 8B | Δ |
+|---|---|---|---|
+| Execution accuracy (result set matches gold) | 95% | 91% | -1 pts |
+| Valid SQL on first attempt | 90% | 95% | +5 pts |
+| Mean retries (`retries` field in `/query` response) | 0.31 | 0.09 | −71% |
+| Unrecoverable after `MAX_RETRIES` | 4% | 3% | −1 pt |
+| Response-format parse failures | 3% | 1% | — |
+
+The large projected gain is in **first-attempt validity**, not raw accuracy — that is where fine-tuning is expected to pay, by eliminating format drift and schema-convention mistakes that currently burn a retry. *Execution accuracy* compares the returned result set against a gold query's result set (order-insensitive), not SQL text, so semantically equivalent queries count as correct.
+
+### Latency and cost
+
+| Metric | Baseline | Fine-tuned 8B | Δ |
+|---|---|---|---|
+| Generation latency, p50 | ~2,400 ms | ~400 ms | −83% |
+| Generation latency, p95 | ~4,900 ms | ~750 ms | −85% |
+| End-to-end p50 (retrieval → NL answer) | ~5,100 ms | ~1,500 ms | −70% |
+| Cost per 1,000 queries | ~$4.20 | ~$0.35 | −92% |
+
+Latency covers step 4 only; SQL execution is reported separately by the executor as `execution_time_ms` and is unaffected by model choice. End-to-end covers two LLM calls (SQL generation + NL answer). Self-hosted cost is GPU-hour cost amortized over throughput, not per-token pricing, and only beats the API above roughly 15k queries/day — below that the baseline is cheaper.
+
+### Limitations
+
+- **Gains are schema-specific.** The adapter memorizes conventions of this database. On a database it wasn't trained on (`/upload-db`, `Chinook.db`) accuracy is expected to regress *below* the baseline, plausibly to the 40-50% range against the baseline's ~84%. A fine-tuned model is therefore only viable for a fixed-schema deployment, not the general upload flow.
+- Complex multi-hop and nested analytic queries are where the remaining gap is expected to concentrate.
+
+---
+
 ## Running Tests
 
 ```bash

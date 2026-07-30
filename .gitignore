@@ -12,3 +12,4 @@ embeddings/schema_info.json
 graph/relationships.json
 venv/
 .venv/
+CLAUDE.md
